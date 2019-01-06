@@ -117,7 +117,7 @@ export const store = new Vuex.Store({
             .then(firebaseUser => {
               console.log(firebaseUser)
               commit('setUser', { email: firebaseUser.user.email, uid: firebaseUser.user.uid })
-              commit('setToken', firebaseUser.user.qa)
+              commit('setToken', firebaseUser.user.ra)
               commit('setLoading', false)
               commit('setError', null)
               console.log(firebaseUser)
