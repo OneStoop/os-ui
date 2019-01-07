@@ -3,39 +3,27 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import firebase from 'firebase'
 
-const routerOptions = [
-  { path: '/', component: 'Landing' },
-  { path: '/feed', component: 'Feed', meta: { requiresAuth: true } },
-  { path: '/help', component: 'Help' },
-  { path: '/help/:item', component: 'Help' },
-  { path: '/home', component: 'Home', meta: { requiresAuth: true } },
-  { path: '/landing', component: 'Landing2' },
-  { path: '/signin', component: 'Signin', meta: { requiresNoAuth: true } },
-  { path: '/signout', component: 'Signout', meta: { requiresAuth: true } },
-  { path: '/signup', component: 'Signup', meta: { requiresNoAuth: true } },
-  { path: '/profile/:email', component: 'Profile', meta: { requiresAuth: true } },
-  { path: '/tryagain', component: 'Tryagain' },
-  { path: '*', component: 'NotFound' }
-]
-
-const routes = routerOptions.map(route => {
-  return {
-    ...route,
-    component: () => import(`@/components/${route.component}.vue`)
-  }
-})
+function loadView(view) {
+  return () => import(/* webpackChunkName: "view-[request]" */ `@/components/${view}.vue`)
+}
 
 const router = new VueRouter({
   mode: 'history',
-  routes // short for `routes: routes`
+  routes: [
+    { path: '/', component: loadView('Landing') },
+    { path: '/feed', component: loadView('Feed'), meta: { requiresAuth: true } },
+    { path: '/help', component: loadView('Help') },
+    { path: '/help/:item', component: loadView('Help') },
+    { path: '/signin', component: loadView('Signin'), meta: { requiresNoAuth: true } },
+    { path: '/signout', component: loadView('Signout'), meta: { requiresAuth: true } },
+    { path: '/signup', component: loadView('Signup'), meta: { requiresNoAuth: true } },
+    { path: '/profile/:email', component: loadView('Profile'), meta: { requiresAuth: true } },
+    { path: '/tryagain', component: loadView('Tryagain') },
+    { path: '*', component: loadView('NotFound') }
+  ]
 })
 
 Vue.use(VueRouter)
-
-// const router = new Router({
-//   mode: 'history',
-//   routes
-// })
 
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
