@@ -38,7 +38,7 @@
                       :key="i"
                     >
                         <v-btn color="info" flat v-if="item.title === 'edit'" @click="editPost(post.id)">Edit Post</v-btn>
-                        <v-btn color="info" flat v-if="item.title === 'delete'" @click="deletePost(post.id)">Delete Post</v-btn>
+                        <v-btn color="info" flat v-if="item.title === 'delete'" @click="openDeletePost(post.id)">Delete Post</v-btn>
                     </div>
                   </v-list>
                 </v-menu>
@@ -171,6 +171,18 @@
       </v-layout>
     </v-dialog>
 
+    <v-dialog v-model="deletePostDialog" max-width="290">
+      <v-card>
+        <v-card-title class="headline">Are you sure?</v-card-title>
+        <v-card-text>If you delete this post it can not be recovered.</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat @click="deletePostDialog = false">Cancel</v-btn>
+          <v-btn color="green darken-1" flat @click="deletePost">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-dialog v-model="dialog" width="800px">
       <v-card>
         <form @submit.prevent="postPost" ref="newPost">
@@ -247,6 +259,8 @@ export default {
   computed: {
   },
   data: () => ({
+    deletePostDialog: false,
+    deletePostID: null,
     dialog: false,
     dropzoneOptions: {
       url: 'http://localhost',
@@ -299,9 +313,14 @@ export default {
       this.imageIDs = []
       this.newVisibility = 'friends'
     },
-    deletePost (id) {
+    openDeletePost (id) {
+      this.deletePostID = id
+      this.deletePostDialog = true
+    },
+    deletePost () {
       console.log('deletePost')
-      this.$store.dispatch('deletePosts', id)
+      this.$store.dispatch('deletePosts', this.deletePostID)
+      this.deletePostDialog = false
     },
     editPost (id) {
       console.log('editPost')
@@ -359,7 +378,9 @@ export default {
         console.log(vm.imagePaths)
         axios.post(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': vm.imageIDs, 'visibility': vm.newVisibility }, auth)
           .then(response => {
-            vm.$store.commit('addNewPost', response.data)
+            var newPost = response.data
+            newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
+            vm.$store.commit('addNewPost', newPost)
             vm.newVisibility = 'friends'
             vm.postData = null
             vm.dialog = false
@@ -496,6 +517,11 @@ export default {
     imgDialog (val) {
       if (!val) {
         this.imgDialogImages = []
+      }
+    },
+    deletePostDialog (val) {
+      if (!val) {
+        this.deletePostID = null
       }
     }
   }
