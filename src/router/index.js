@@ -3,7 +3,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import firebase from 'firebase'
 
-function loadView(view) {
+function loadView (view) {
   return () => import(/* webpackChunkName: "view-[request]" */ `@/components/${view}.vue`)
 }
 

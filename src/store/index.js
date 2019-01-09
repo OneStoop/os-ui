@@ -24,6 +24,7 @@ export const store = new Vuex.Store({
   plugins: [vuexLocalStorage.plugin],
   state: {
     user: null,
+    post: null,
     profile: null,
     token: null,
     error: null,
@@ -66,6 +67,9 @@ export const store = new Vuex.Store({
     },
     addNewPost (state, payload) {
       state.posts.unshift(payload)
+    },
+    clearPosts (state, payload) {
+      state.posts = []
     }
   },
   actions: {
@@ -76,6 +80,41 @@ export const store = new Vuex.Store({
       }).catch(function (error) {
         console.log(error)
       })
+    },
+    deletePosts ({ commit }, payload) {
+      console.log('running deletePosts')
+      var auth = {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
+      }
+      axios.delete(process.env.API_SERVER + 'posts?postID=' + payload, auth)
+        .then(response => {
+          console.log(response.data)
+          for (var i = 0; i < store.state.posts.length; i++) {
+            if (payload === store.state.posts[i].id) {
+              store.state.posts.splice(i, 1)
+              break
+            }
+          }
+        })
+        .catch(function (error) {
+          console.log(error)
+        })
+    },
+    loadPosts ({ commit }, payload) {
+      console.log('running loadPosts')
+      // var newPayload = []
+      // var tmpItem = {}
+      // for (i = 0; payload.length; i++) {
+      // tmpItem = payload[i]
+      //  if (payload[i].email == state.user.email) {
+      //    newPayload[i].postControl = [{title: "Edit Post"}, {title: "Delete Post"}]
+      //  } else {
+      //    newPayload[i].postControl = [{title: "Bob"}]
+      //  }
+      //  newPayload.push(tmpItem)
+      //  console.log(payload[i])
+      // }
+      commit('setPosts', payload)
     },
     userSignUp ({ commit }, payload) {
       commit('setLoading', true)
@@ -194,6 +233,9 @@ export const store = new Vuex.Store({
     userSignOut ({ commit }) {
       firebase.auth().signOut()
       commit('setUser', null)
+      commit('setProfile', null)
+      commit('clearPosts', null)
+      commit('setToken', null)
       router.push('/')
     }
   },

@@ -33,13 +33,13 @@
                     <v-icon>more_vert</v-icon>
                   </v-btn>
                   <v-list>
-                    <v-list-tile
-                      v-for="(item, i) in items"
+                    <div
+                      v-for="(item, i) in post.postControl"
                       :key="i"
-                      @click=""
                     >
-                      <v-list-tile-title>{{ item.title }}</v-list-tile-title>
-                    </v-list-tile>
+                        <v-btn color="info" flat v-if="item.title === 'edit'" @click="editPost(post.id)">Edit Post</v-btn>
+                        <v-btn color="info" flat v-if="item.title === 'delete'" @click="deletePost(post.id)">Delete Post</v-btn>
+                    </div>
                   </v-list>
                 </v-menu>
               </v-toolbar>
@@ -277,6 +277,11 @@ export default {
             var incomingPosts = response.data.posts[i]
             incomingPosts.changed = false
             incomingPosts.newComment = ''
+            if (incomingPosts.email === vm.$store.state.user.email) {
+              incomingPosts.postControl = [{ title: 'edit' }, { title: 'delete' }]
+            } else {
+              incomingPosts.postControl = []
+            }
             vm.$store.commit('addPosts', incomingPosts)
             // vm.posts.splice(vm.posts.length, 0, incomingPosts)
           }
@@ -293,6 +298,13 @@ export default {
       this.dialog = false
       this.imageIDs = []
       this.newVisibility = 'friends'
+    },
+    deletePost (id) {
+      console.log('deletePost')
+      this.$store.dispatch('deletePosts', id)
+    },
+    editPost (id) {
+      console.log('editPost')
     },
     postDate (utcdate) {
       return moment.unix(utcdate).fromNow()
@@ -431,9 +443,7 @@ export default {
     console.log('running Mounted')
     this.$refs.myVueDropzone.setOption('url', this.$store.getters.baseurl + 'files')
     this.$refs.myVueDropzone.setOption('headers', { 'Authorization': this.$store.getters.token })
-    // console.log(this.$refs.myVueDropzone)
     this.scroll()
-    // this.$refs.fileDropzone.setOption('headers', {'Authorization': this.$store.getters.token})
     let vm = this
     setTimeout(function () { vm.autoRefreshToken() }, 300000)
   },
@@ -451,14 +461,21 @@ export default {
         .get(process.env.API_SERVER + 'feed', auth)
         .then(response => {
           var incomingPosts = response.data.posts
+
           for (var i = 0; i < incomingPosts.length; i++) {
             incomingPosts[i].changed = false
             incomingPosts[i].newComment = ''
+            if (incomingPosts[i].email === vm.$store.state.user.email) {
+              incomingPosts[i].postControl = [{ title: 'edit' }, { title: 'delete' }]
+            } else {
+              incomingPosts[i].postControl = []
+            }
           }
-          vm.$store.commit('setPosts', incomingPosts)
+          vm.$store.dispatch('loadPosts', incomingPosts)
         })
         .catch(function (error) {
-          if (error.response.data.status === 'expired' && count < 3) {
+          // if (error.response.data.status === 'expired' && count < 3) {
+          if (error.response.status === 401 && count < 3) {
             count++
             vm.$store.dispatch('refreshToken')
             setTimeout(getFeed(vm, count), 1000)
