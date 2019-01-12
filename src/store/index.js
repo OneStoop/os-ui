@@ -240,26 +240,29 @@ export const store = new Vuex.Store({
     }
   },
   getters: {
-    isAuthenticated (state) {
+    isAuthenticated: state => {
       return state.user !== null && state.user !== undefined
     },
-    token (state) {
+    token: state => {
       if (state.user !== null && state.user !== undefined && state.user !== null && state.token !== undefined) {
         return state.token
       } else {
         return null
       }
     },
-    posts (state) {
+    getPostById: (state) => (id) => {
+      return state.posts.find(post => post.id === id)
+    },
+    posts: state => {
       return state.posts
     },
-    profile (state) {
+    profile: state => {
       return state.profile
     },
-    user (state) {
+    user: state => {
       return state.user
     },
-    baseurl (state) {
+    baseurl: state => {
       return state.baseurl
     }
   }

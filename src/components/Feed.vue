@@ -37,7 +37,7 @@
                       v-for="(item, i) in post.postControl"
                       :key="i"
                     >
-                        <v-btn color="info" flat v-if="item.title === 'edit'" @click="editPost(post.id)">Edit Post</v-btn>
+                        <v-btn color="info" flat v-if="item.title === 'edit'" @click="openEditPost(post.id)">Edit Post</v-btn>
                         <v-btn color="info" flat v-if="item.title === 'delete'" @click="openDeletePost(post.id)">Delete Post</v-btn>
                     </div>
                   </v-list>
@@ -53,14 +53,14 @@
                   <v-flex lg12>
                     <div v-if="post.images.length === 1">
                       <center>
-                        <img :src="post.images[0]" style="max-width: 100%;" @click.stop="showImgDialog(post.images)" />
+                        <img :src="post.images[0].url" style="max-width: 100%;" @click.stop="showImgDialog(post.images)" />
                       </center>
                     </div>
                     <div v-else-if="post.images.length > 1">
                       <v-carousel :cycle=false light>
                         <v-carousel-item v-for="(item,i) in post.images" :key="i">
                           <center>
-                            <img :src="item" style="max-width: 100%;" @click.stop="showImgDialog(post.images)">
+                            <img :src="item.url" style="max-width: 100%;" @click.stop="showImgDialog(post.images)">
                           </center>
                         </v-carousel-item>
                       </v-carousel>
@@ -157,7 +157,7 @@
               v-for="(item,i) in this.imgDialogImages"
               :key="i"
             >
-              <center><img :src="item" style="width:90%"></center>
+              <center><img :src="item.url" style="width:90%"></center>
             </v-carousel-item>
           </v-carousel>
         </v-card-text>
@@ -220,6 +220,7 @@
                   :options="dropzoneOptions"
                   v-on:vdropzone-success="successEvent"
                   v-on:vdropzone-removed-file="removedEvent"
+                  :destroyDropzone="false"
                 >
               </vue-dropzone>
             </v-flex>
@@ -242,6 +243,66 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog v-model="editDialog" width="800px">
+      <v-card>
+        <form @submit.prevent="editPost" ref="editPost">
+        <v-toolbar>
+          <v-toolbar-title>
+            Edit Post
+          </v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon href="/help/newPost" target="_blank">
+            <v-icon>help</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-container grid-list-sm class="pa-4">
+          <v-layout row wrap>
+            <v-flex xs2>
+             <v-subheader>
+               <v-avatar size="32px" tile>
+                 <v-icon>account_circle</v-icon>
+               </v-avatar>
+             </v-subheader>
+            </v-flex>
+            <v-flex xs10>
+              <v-textarea
+                name="input-1"
+                label="Say something"
+                id="testing"
+                multi-line
+                v-model="postData"
+              ></v-textarea>
+            </v-flex>
+            <v-flex xs12 align-center justify-space-between>
+                <vue-dropzone
+                  id="files2"
+                  ref="myVueDropzone2"
+                  :options="dropzoneOptions"
+                  v-on:vdropzone-success="successEvent"
+                  v-on:vdropzone-removed-file="removedEvent"
+                  :destroyDropzone="false"
+                >
+              </vue-dropzone>
+            </v-flex>
+          </v-layout>
+        </v-container>
+        <v-card-actions>
+          <v-select
+            :items='["friends", "followers", "public"]'
+            v-model="newVisibility"
+            label="Visibility"
+            single-line
+            hint="Visibility"
+            persistent-hint
+          ></v-select>
+          <v-spacer></v-spacer>
+          <v-btn flat color="primary" @click="cancleEdit">Cancel</v-btn>
+          <v-btn color="primary" type="submit" :disabled="this.$store.state.loading">Submit</v-btn>
+        </v-card-actions>
+        </form>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -259,6 +320,7 @@ export default {
   computed: {
   },
   data: () => ({
+    editDialog: false,
     deletePostDialog: false,
     deletePostID: null,
     dialog: false,
@@ -307,11 +369,21 @@ export default {
     autoRefreshToken () {
       this.$store.dispatch('refreshToken')
     },
+    cancleEdit () {
+      this.editDialog = false
+      this.postData = ''
+      this.newVisibility = 'friends'
+    },
     canclePost () {
       this.postData = null
       this.dialog = false
       this.imageIDs = []
       this.newVisibility = 'friends'
+    },
+    openEditPost (id) {
+      this.postData = this.$store.getters.getPostById(id).body
+      this.newVisibility = this.$store.getters.getPostById(id).visibility
+      this.editDialog = true
     },
     openDeletePost (id) {
       this.deletePostID = id
@@ -324,6 +396,43 @@ export default {
     },
     editPost (id) {
       console.log('editPost')
+      function doEditPost (vm, count) {
+        console.log('starting doPost')
+        var auth = {
+          headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
+        }
+        console.log(vm.imagePaths)
+        axios.put(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': vm.imageIDs, 'visibility': vm.newVisibility }, auth)
+          .then(response => {
+            var newPost = response.data
+            newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
+            vm.$store.commit('addNewPost', newPost) // ???
+            vm.newVisibility = 'friends'
+            vm.postData = null
+            vm.dialog = false
+            vm.imageIDs = []
+            vm.newVisibility = 'friends'
+          })
+          .catch(function (error) {
+            if (error.response.data.status === 'expired' && count < 3) {
+              count++
+              vm.$store.dispatch('refreshToken')
+              setTimeout(doEditPost(count), 1000)
+            } else if (error.response.status >= 400 && count < 3) {
+              count++
+              setTimeout(doEditPost(count), 1000)
+            } else {
+              console.log(error)
+              vm.postData = null
+              vm.dialog = false
+              vm.imageIDs = []
+              vm.newVisibility = 'friends'
+            }
+          })
+      }
+
+      var count = 0
+      doEditPost(this, count)
     },
     postDate (utcdate) {
       return moment.unix(utcdate).fromNow()
@@ -462,6 +571,7 @@ export default {
   },
   mounted () {
     console.log('running Mounted')
+    console.log(this.$refs.myVueDropzone)
     this.$refs.myVueDropzone.setOption('url', this.$store.getters.baseurl + 'files')
     this.$refs.myVueDropzone.setOption('headers', { 'Authorization': this.$store.getters.token })
     this.scroll()
