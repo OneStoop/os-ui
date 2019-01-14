@@ -157,7 +157,7 @@
               v-for="(item,i) in this.imgDialogImages"
               :key="i"
             >
-              <center><img :src="item.url" style="max-width: 60%; max-height: 90%; width: auto;" contain></center>
+              <center><img :src="item.url" style="max-width: 60%; width: auto;" contain></center>
             </v-carousel-item>
           </v-carousel>
         </v-card-text>
@@ -220,7 +220,7 @@
                   :options="dropzoneOptions"
                   v-on:vdropzone-success="successEvent"
                   v-on:vdropzone-removed-file="removedEvent"
-                  :destroyDropzone="false"
+                  :destroyDropzone="true"
                 >
               </vue-dropzone>
             </v-flex>
@@ -328,7 +328,7 @@ export default {
       url: 'http://localhost',
       thumbnailWidth: 200,
       addRemoveLinks: true,
-      dictDefaultMessage: "<i class='fa fa-cloud-upload'></i>UPLOAD ME",
+      dictDefaultMessage: "<i class='fa fa-cloud-upload'></i>Click or Dorp files here",
       headers: { 'Authorization': 'token' }
     },
     imageIDs: [],
@@ -336,7 +336,8 @@ export default {
     imgDialogImages: [],
     items: [{ title: 'Edit Post' }, { title: 'Delete Post' }],
     postData: '',
-    newVisibility: 'friends'
+    newVisibility: 'friends',
+    isDestroying: false
   }),
   methods: {
     addPosts () {
@@ -379,6 +380,7 @@ export default {
       this.dialog = false
       this.imageIDs = []
       this.newVisibility = 'friends'
+      this.$refs.myVueDropzone.removeAllFiles()
     },
     openEditPost (id) {
       this.postData = this.$store.getters.getPostById(id).body
@@ -488,6 +490,7 @@ export default {
         axios.post(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': vm.imageIDs, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
+            vm.$refs.myVueDropzone.removeAllFiles()
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
             vm.$store.commit('addNewPost', newPost)
             vm.newVisibility = 'friends'
@@ -506,6 +509,7 @@ export default {
               setTimeout(doPost(count), 1000)
             } else {
               console.log(error)
+              vm.$refs.myVueDropzone.removeAllFiles()
               vm.postData = null
               vm.dialog = false
               vm.imageIDs = []
@@ -546,9 +550,13 @@ export default {
             }
           })
       }
+      if (this.isDestroying) { return }
       let vm = this
       var count = 0
       deleteFile(vm, count, file)
+    },
+    beforeDestroy () {
+      this.isDestroying = true
     },
     scroll () {
       window.onscroll = () => {
