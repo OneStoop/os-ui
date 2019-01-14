@@ -109,7 +109,7 @@ export default {
       sidebar: false,
       postData: null,
       dialog: false,
-      drawer: null,
+      drawer: false,
       items: [
         { id: 1, icon: 'merge_type', text: 'Feed', path: '/feed' },
         { id: 2, icon: 'chat', text: 'Chatter', path: '/home' },

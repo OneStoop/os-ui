@@ -147,7 +147,7 @@
 
     <v-dialog
       v-model="imgDialog"
-      width="90%"
+      width="100%"
     >
       <v-layout row justify-center>
       <v-card>
@@ -157,7 +157,7 @@
               v-for="(item,i) in this.imgDialogImages"
               :key="i"
             >
-              <center><img :src="item.url" style="width:90%"></center>
+              <center><img :src="item.url" style="max-width: 60%; max-height: 90%; width: auto;" contain></center>
             </v-carousel-item>
           </v-carousel>
         </v-card-text>
