@@ -147,12 +147,20 @@
 
     <v-dialog
       v-model="imgDialog"
-      width="100%"
+      fullscreen
+      hide-overlay
     >
-      <v-layout row justify-center>
-      <v-card>
+      <v-card height="100%">
+        <v-toolbar dark>
+          <v-btn
+            color="#2196F3"
+            @click="imgDialog = false"
+          >
+            Close
+          </v-btn>
+        </v-toolbar>
         <v-card-text>
-          <v-carousel :cycle=false>
+          <v-carousel :cycle=false height="90%">
             <v-carousel-item
               v-for="(item,i) in this.imgDialogImages"
               :key="i"
@@ -162,13 +170,6 @@
           </v-carousel>
         </v-card-text>
       </v-card>
-      <v-btn
-            color="#2196F3"
-            @click="imgDialog = false"
-          >
-            Close
-          </v-btn>
-      </v-layout>
     </v-dialog>
 
     <v-dialog v-model="deletePostDialog" max-width="290">
