@@ -220,8 +220,8 @@
                   ref="myVueDropzone"
                   :options="dropzoneOptions"
                   v-on:vdropzone-success="successEvent"
-                  v-on:vdropzone-removed-file="removedEvent"
-                  :destroyDropzone="true"
+                  :destroyDropzone="false"
+                  @vdropzone-removed-file="removedEvent"
                 >
               </vue-dropzone>
             </v-flex>
