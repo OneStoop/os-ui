@@ -196,7 +196,7 @@
             <v-icon>help</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-container grid-list-sm class="pa-4">
+        <v-container>
           <v-layout row wrap>
             <v-flex xs2>
              <v-subheader>
@@ -214,16 +214,45 @@
                 v-model="postData"
               ></v-textarea>
             </v-flex>
-            <v-flex xs12 align-center justify-space-between>
-                <vue-dropzone
-                  id="files"
-                  ref="myVueDropzone"
-                  :options="dropzoneOptions"
-                  v-on:vdropzone-success="successEvent"
-                  :destroyDropzone="false"
-                  @vdropzone-removed-file="removedEvent"
+
+            <v-flex xs12>
+              <v-card>
+                <input
+                  type="file"
+                  ref="file"
+                  multiple="multiple"
+                  :name="uploadFieldName"
+                  @change="onFileChange($event.target.name, $event.target.files)"
+                  style="display:none"
                 >
-              </vue-dropzone>
+                <v-container fluid grid-list-md>
+                  <v-layout row wrap>
+                    <v-flex
+                      xs2
+                      v-for="(img, i) in this.postImages"
+                      :key="i"
+                    >
+                      <v-card>
+                        <v-img
+                          :src="img.url"
+                          height="100px"
+                        >
+                        </v-img>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn small icon><v-icon>delete_outline</v-icon></v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-flex>
+                  </v-layout>
+                </v-container>
+              </v-card>
+            </v-flex>
+
+            <v-flex xs12 align-center justify-space-between>
+              <v-btn small round @click="launchFilePicker()"><v-icon>insert_photo</v-icon>Photo/Video</v-btn>
+              <v-btn small round><v-icon>person_add</v-icon>Tags</v-btn>
+              <v-btn small round><v-icon>gif</v-icon>GIF</v-btn>
             </v-flex>
           </v-layout>
         </v-container>
@@ -275,15 +304,7 @@
               ></v-textarea>
             </v-flex>
             <v-flex xs12 align-center justify-space-between>
-                <vue-dropzone
-                  id="files2"
-                  ref="myVueDropzone2"
-                  :options="dropzoneOptions"
-                  v-on:vdropzone-success="successEvent"
-                  v-on:vdropzone-removed-file="removedEvent"
-                  :destroyDropzone="false"
-                >
-              </vue-dropzone>
+
             </v-flex>
           </v-layout>
         </v-container>
@@ -311,12 +332,11 @@
 import axios from 'axios'
 // import firebase from 'firebase'
 import moment from 'moment'
-import vue2Dropzone from 'vue2-dropzone'
-import 'vue2-dropzone/dist/vue2Dropzone.min.css'
+// import vue2Dropzone from 'vue2-dropzone'
+// import 'vue2-dropzone/dist/vue2Dropzone.min.css'
 
 export default {
   components: {
-    vueDropzone: vue2Dropzone
   },
   computed: {
   },
@@ -325,20 +345,15 @@ export default {
     deletePostDialog: false,
     deletePostID: null,
     dialog: false,
-    dropzoneOptions: {
-      url: 'http://localhost',
-      thumbnailWidth: 200,
-      addRemoveLinks: true,
-      dictDefaultMessage: "<i class='fa fa-cloud-upload'></i>Click or Dorp files here",
-      headers: { 'Authorization': 'token' }
-    },
     imageIDs: [],
     imgDialog: false,
     imgDialogImages: [],
     items: [{ title: 'Edit Post' }, { title: 'Delete Post' }],
     postData: '',
+    postImages: [],
     newVisibility: 'friends',
-    isDestroying: false
+    isDestroying: false,
+    uploadFieldName: 'file'
   }),
   methods: {
     addPosts () {
@@ -381,7 +396,7 @@ export default {
       this.dialog = false
       this.imageIDs = []
       this.newVisibility = 'friends'
-      this.$refs.myVueDropzone.removeAllFiles()
+      this.postImages = []
     },
     openEditPost (id) {
       this.postData = this.$store.getters.getPostById(id).body
@@ -437,6 +452,34 @@ export default {
       var count = 0
       doEditPost(this, count)
     },
+    launchFilePicker () {
+      this.$refs.file.click()
+    },
+    onFileChange (fieldName, file) {
+      function doPost (vm, f) {
+        const formData = new FormData()
+        formData.append('file', f, f.name)
+        var auth = {
+          headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
+        }
+        axios.post(process.env.API_SERVER + 'files', formData, auth)
+          .then(response => {
+            vm.postImages.push({ 'url': response.url, 'key': response.imageID })
+            console.log(vm.postImages)
+          })
+          .catch(function (error) {
+            console.log(error)
+          })
+      }
+
+      console.log('running onFileChange')
+      console.log(file)
+      for (var i = 0; i < file.length; i++) {
+        console.log(file[i])
+        var vm = this
+        doPost(vm, file[i])
+      }
+    },
     postDate (utcdate) {
       return moment.unix(utcdate).fromNow()
     },
@@ -491,7 +534,6 @@ export default {
         axios.post(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': vm.imageIDs, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
-            vm.$refs.myVueDropzone.removeAllFiles()
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
             vm.$store.commit('addNewPost', newPost)
             vm.newVisibility = 'friends'
@@ -510,7 +552,6 @@ export default {
               setTimeout(doPost(count), 1000)
             } else {
               console.log(error)
-              vm.$refs.myVueDropzone.removeAllFiles()
               vm.postData = null
               vm.dialog = false
               vm.imageIDs = []
@@ -580,9 +621,6 @@ export default {
   },
   mounted () {
     console.log('running Mounted')
-    console.log(this.$refs.myVueDropzone)
-    this.$refs.myVueDropzone.setOption('url', this.$store.getters.baseurl + 'files')
-    this.$refs.myVueDropzone.setOption('headers', { 'Authorization': this.$store.getters.token })
     this.scroll()
     let vm = this
     setTimeout(function () { vm.autoRefreshToken() }, 300000)
