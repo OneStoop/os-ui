@@ -464,7 +464,8 @@ export default {
         }
         axios.post(process.env.API_SERVER + 'files', formData, auth)
           .then(response => {
-            vm.postImages.push({ 'url': response.url, 'key': response.imageID })
+            vm.postImages.push({ 'url': response.data.url, 'key': response.data.imageID })
+            console.log('postImages')
             console.log(vm.postImages)
           })
           .catch(function (error) {
@@ -473,11 +474,8 @@ export default {
       }
 
       console.log('running onFileChange')
-      console.log(file)
       for (var i = 0; i < file.length; i++) {
-        console.log(file[i])
-        var vm = this
-        doPost(vm, file[i])
+        doPost(this, file[i])
       }
     },
     postDate (utcdate) {
@@ -597,9 +595,6 @@ export default {
       var count = 0
       deleteFile(vm, count, file)
     },
-    beforeDestroy () {
-      this.isDestroying = true
-    },
     scroll () {
       window.onscroll = () => {
         let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight
@@ -612,11 +607,6 @@ export default {
     showImgDialog (images) {
       this.imgDialogImages = images
       this.imgDialog = true
-    },
-    successEvent (file, response) {
-      console.log(response)
-      this.imageIDs.push(response.imageID)
-      file.renameFilename = response.imageID
     }
   },
   mounted () {
