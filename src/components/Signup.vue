@@ -41,6 +41,15 @@
                 :rules="[comparePasswords]"
                 ></v-text-field>
             </v-flex>
+            <v-flex>
+              <v-text-field
+                name="invitationCode"
+                label="Invitation Code"
+                id="invitationCode"
+                type="text"
+                v-model="invitationCode"
+                required></v-text-field>
+            </v-flex>
             <v-flex class="text-xs-center" mt-5>
               <v-btn color="primary" type="submit" :disabled="loading">Sign Up</v-btn>
             </v-flex>
@@ -58,7 +67,8 @@ export default {
       email: '',
       password: '',
       passwordConfirm: '',
-      alert: false
+      alert: false,
+      invitationCode: ''
     }
   },
   computed: {
@@ -77,7 +87,7 @@ export default {
       if (this.comparePasswords !== true) {
         return
       }
-      this.$store.dispatch('userSignUp', { email: this.email, password: this.password })
+      this.$store.dispatch('userSignUp', { email: this.email, password: this.password, invitationCode: this.invitationCode })
     }
   },
   watch: {

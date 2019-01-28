@@ -150,7 +150,7 @@
       fullscreen
       hide-overlay
     >
-      <v-card height="100%">
+      <v-card dark height="100%">
         <v-toolbar dark>
           <v-btn
             color="#2196F3"
@@ -160,12 +160,12 @@
           </v-btn>
         </v-toolbar>
         <v-card-text>
-          <v-carousel :cycle=false height="90%">
+          <v-carousel dark hide-delimiters :cycle=false :height="window.height - (window.height * .15)">
             <v-carousel-item
               v-for="(item,i) in this.imgDialogImages"
               :key="i"
             >
-              <center><img :src="item.url" style="max-width: 60%; width: auto;" contain></center>
+              <center><v-img :src="item.url" contain :height="window.height - (window.height * .15)"></v-img></center>
             </v-carousel-item>
           </v-carousel>
         </v-card-text>
@@ -229,7 +229,7 @@
                   <v-layout row wrap>
                     <v-flex
                       xs2
-                      v-for="(img, i) in this.postImages"
+                      v-for="(img, i) in this.imageIDs"
                       :key="i"
                     >
                       <v-card>
@@ -240,7 +240,7 @@
                         </v-img>
                         <v-card-actions>
                           <v-spacer></v-spacer>
-                          <v-btn small icon><v-icon>delete_outline</v-icon></v-btn>
+                          <v-btn small icon @click="removedEvent(img)"><v-icon>delete_outline</v-icon></v-btn>
                         </v-card-actions>
                       </v-card>
                     </v-flex>
@@ -303,9 +303,47 @@
                 v-model="postData"
               ></v-textarea>
             </v-flex>
-            <v-flex xs12 align-center justify-space-between>
 
+            <v-flex xs12>
+              <v-card>
+                <input
+                  type="file"
+                  ref="editFile"
+                  multiple="multiple"
+                  :name="uploadFieldName"
+                  @change="onEditfileChange($event.target.name, $event.target.files)"
+                  style="display:none"
+                >
+                <v-container fluid grid-list-md>
+                  <v-layout row wrap>
+                    <v-flex
+                      xs2
+                      v-for="(img, i) in this.imageIDs"
+                      :key="i"
+                    >
+                      <v-card>
+                        <v-img
+                          :src="img.url"
+                          height="100px"
+                        >
+                        </v-img>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn small icon @click="removedEditEvent(img)"><v-icon>delete_outline</v-icon></v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-flex>
+                  </v-layout>
+                </v-container>
+              </v-card>
             </v-flex>
+
+            <v-flex xs12 align-center justify-space-between>
+              <v-btn small round @click="launchEditFilePicker()"><v-icon>insert_photo</v-icon>Photo/Video</v-btn>
+              <v-btn small round><v-icon>person_add</v-icon>Tags</v-btn>
+              <v-btn small round><v-icon>gif</v-icon>GIF</v-btn>
+            </v-flex>
+
           </v-layout>
         </v-container>
         <v-card-actions>
@@ -342,6 +380,7 @@ export default {
   },
   data: () => ({
     editDialog: false,
+    editPostID: null,
     deletePostDialog: false,
     deletePostID: null,
     dialog: false,
@@ -350,10 +389,15 @@ export default {
     imgDialogImages: [],
     items: [{ title: 'Edit Post' }, { title: 'Delete Post' }],
     postData: '',
-    postImages: [],
     newVisibility: 'friends',
+    removeImages: [],
+    newImages: [],
     isDestroying: false,
-    uploadFieldName: 'file'
+    uploadFieldName: 'file',
+    window: {
+      width: 0,
+      height: 0
+    }
   }),
   methods: {
     addPosts () {
@@ -389,18 +433,24 @@ export default {
     cancleEdit () {
       this.editDialog = false
       this.postData = ''
+      this.imageIDs = []
+      this.removeImages = []
+      this.newImages = []
       this.newVisibility = 'friends'
+      this.editPostID = null
     },
     canclePost () {
       this.postData = null
       this.dialog = false
       this.imageIDs = []
       this.newVisibility = 'friends'
-      this.postImages = []
     },
     openEditPost (id) {
       this.postData = this.$store.getters.getPostById(id).body
       this.newVisibility = this.$store.getters.getPostById(id).visibility
+      console.log(this.$store.getters.getPostById(id).images)
+      this.imageIDs = this.$store.getters.getPostById(id).images
+      this.editPostID = id
       this.editDialog = true
     },
     openDeletePost (id) {
@@ -412,24 +462,27 @@ export default {
       this.$store.dispatch('deletePosts', this.deletePostID)
       this.deletePostDialog = false
     },
-    editPost (id) {
+    editPost () {
       console.log('editPost')
       function doEditPost (vm, count) {
-        console.log('starting doPost')
+        console.log('starting editPost')
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
         console.log(vm.imagePaths)
-        axios.put(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': vm.imageIDs, 'visibility': vm.newVisibility }, auth)
+        axios.put(process.env.API_SERVER + 'posts?postID=' + vm.editPostID, { 'post': vm.postData, 'removeImages': vm.removeImages, 'newImages': vm.newImages, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
-            vm.$store.commit('addNewPost', newPost) // ???
+            vm.$store.commit('editPost', newPost) // ???
             vm.newVisibility = 'friends'
             vm.postData = null
-            vm.dialog = false
+            vm.editDialog = false
             vm.imageIDs = []
             vm.newVisibility = 'friends'
+            vm.editPostID = null
+            vm.removeImages = []
+            vm.newImages = []
           })
           .catch(function (error) {
             if (error.response.data.status === 'expired' && count < 3) {
@@ -442,9 +495,12 @@ export default {
             } else {
               console.log(error)
               vm.postData = null
-              vm.dialog = false
+              vm.editDialog = false
               vm.imageIDs = []
               vm.newVisibility = 'friends'
+              vm.editPostID = null
+              vm.removeImages = []
+              vm.newImages = []
             }
           })
       }
@@ -455,6 +511,9 @@ export default {
     launchFilePicker () {
       this.$refs.file.click()
     },
+    launchEditFilePicker () {
+      this.$refs.editFile.click()
+    },
     onFileChange (fieldName, file) {
       function doPost (vm, f) {
         const formData = new FormData()
@@ -462,11 +521,31 @@ export default {
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
-        axios.post(process.env.API_SERVER + 'files', formData, auth)
+        axios.post(process.env.API_SERVER + 'images', formData, auth)
           .then(response => {
-            vm.postImages.push({ 'url': response.data.url, 'key': response.data.imageID })
-            console.log('postImages')
-            console.log(vm.postImages)
+            vm.imageIDs.push({ 'url': response.data.url, 'key': response.data.imageID })
+          })
+          .catch(function (error) {
+            console.log(error)
+          })
+      }
+
+      console.log('running onFileChange')
+      for (var i = 0; i < file.length; i++) {
+        doPost(this, file[i])
+      }
+    },
+    onEditfileChange (fieldName, file) {
+      function doPost (vm, f) {
+        const formData = new FormData()
+        formData.append('file', f, f.name)
+        var auth = {
+          headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
+        }
+        axios.post(process.env.API_SERVER + 'images', formData, auth)
+          .then(response => {
+            vm.imageIDs.push({ 'url': response.data.url, 'key': response.data.imageID })
+            vm.newImages.push({ 'url': response.data.url, 'key': response.data.imageID })
           })
           .catch(function (error) {
             console.log(error)
@@ -482,9 +561,10 @@ export default {
       return moment.unix(utcdate).fromNow()
     },
     postComment (id) {
-      var thisPostID = parseInt(id)
-      var elementPos = this.$store.getters.posts.findIndex(p => p.id === thisPostID)
-
+      // var thisPostID = parseInt(id)
+      console.log(id)
+      var elementPos = this.$store.getters.posts.findIndex(p => p.id === id)
+      console.log(elementPos)
       function doPost (vm, count) {
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
@@ -492,7 +572,7 @@ export default {
 
         axios.post(process.env.API_SERVER + 'comments',
           { 'comment': vm.$store.getters.posts[elementPos].newComment,
-            'post_id': thisPostID
+            'post_id': id
           }, auth)
           .then(response => {
             console.log('did the comment post')
@@ -529,7 +609,11 @@ export default {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
         console.log(vm.imagePaths)
-        axios.post(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': vm.imageIDs, 'visibility': vm.newVisibility }, auth)
+        var keys = []
+        for (var i = 0; i < vm.imageIDs.length; i++) {
+          keys.push(vm.imageIDs[i].key)
+        }
+        axios.post(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': keys, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
@@ -561,17 +645,18 @@ export default {
       var count = 0
       doPost(this, count)
     },
-    removedEvent (file, error, xhr) {
-      // console.log(file)
-      function deleteFile (vm, count, file) {
+    removedEvent (image) {
+      console.log('starting removedEvent')
+      function deleteFile (vm, count, key) {
         var auth = {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.getters.token }
         }
         axios
-          .delete(process.env.API_SERVER + 'files?fileName=' + file.renameFilename, auth)
+          .delete(process.env.API_SERVER + 'images?fileName=' + key, auth)
           .then(response => {
-            for (var i = 0; i < vm.imageIDs.length - 1; i++) {
-              if (vm.imageIDs[i] === file.renameFilename) {
+            for (var i = 0; i < vm.imageIDs.length; i++) {
+              if (vm.imageIDs[i].key === key) {
+                console.log('removing')
                 vm.imageIDs.splice(i, 1)
               }
             }
@@ -581,19 +666,34 @@ export default {
             if (e.response.data.status === 'expired' && count < 3) {
               count++
               vm.$store.dispatch('refreshToken')
-              setTimeout(deleteFile(vm, count, file), 1000)
+              setTimeout(deleteFile(vm, count, image), 1000)
             } else if (e.response.status >= 400 && count < 3) {
               count++
-              setTimeout(deleteFile(vm, count, file), 1000)
+              setTimeout(deleteFile(vm, count, image), 1000)
             } else {
               console.log(e)
             }
           })
       }
-      if (this.isDestroying) { return }
       let vm = this
       var count = 0
-      deleteFile(vm, count, file)
+      deleteFile(vm, count, image.key)
+    },
+    removedEditEvent (image) {
+      console.log('starting removedEditEvent')
+      console.log(image)
+      this.removeImages.push(image)
+      for (var i = 0; i < this.imageIDs.length; i++) {
+        if (this.imageIDs[i].key === image.key) {
+          console.log('removing')
+          this.imageIDs.splice(i, 1)
+          for (var x = 0; i < this.newImages.length; i++) {
+            if (this.newImages[x].hasOwnProperty()) {
+              this.newImages.splice(x, 1)
+            }
+          }
+        }
+      }
     },
     scroll () {
       window.onscroll = () => {
@@ -607,6 +707,10 @@ export default {
     showImgDialog (images) {
       this.imgDialogImages = images
       this.imgDialog = true
+    },
+    handleResize () {
+      this.window.width = window.innerWidth
+      this.window.height = window.innerHeight
     }
   },
   mounted () {
@@ -617,6 +721,8 @@ export default {
   },
   created () {
     console.log('running Created')
+    window.addEventListener('resize', this.handleResize)
+    this.handleResize()
   },
   beforeCreate () {
     console.log('running beforeCreated')
@@ -659,6 +765,9 @@ export default {
     let vm = this
     var count = 0
     getFeed(vm, count)
+  },
+  destroyed () {
+    window.removeEventListener('resize', this.handleResize)
   },
   watch: {
     imgDialog (val) {

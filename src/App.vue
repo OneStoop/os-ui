@@ -82,13 +82,16 @@
         class="hidden-sm-and-down"
       ></v-text-field>
       <v-spacer></v-spacer>
-      <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'">
+      <!-- <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'"> -->
+      <v-btn icon v-if="this.$store.getters.isAuthenticated">
         <v-icon>chat</v-icon>
       </v-btn>
-      <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'">
+      <!-- <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'"> -->
+      <v-btn icon v-if="this.$store.getters.isAuthenticated">
         <v-icon>notifications</v-icon>
       </v-btn>
-      <v-btn icon large v-if="$route.path != '/' && $route.path != '/signin'" :to="'/profile/' + this.$store.state.user.email">
+      <!-- <v-btn icon large v-if="$route.path != '/' && $route.path != '/signin'" :to="'/profile/' + this.$store.state.user.email"> -->
+      <v-btn icon large v-if="this.$store.getters.isAuthenticated" :to="'/profile/' + this.$store.state.user.email">
         <v-avatar size="32px" tile>
           <i class="material-icons">
             account_circle

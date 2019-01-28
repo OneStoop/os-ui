@@ -57,6 +57,15 @@ export const store = new Vuex.Store({
       console.log('adding posts')
       state.posts.splice(state.posts.length, 0, payload)
     },
+    editPost (state, payload) {
+      console.log('running editPost')
+      for (var i = 0; i < store.state.posts.length; i++) {
+        if (payload === store.state.posts[i].id) {
+          store.state.posts[i] = payload
+          break
+        }
+      }
+    },
     cleanNewComment (state, payload) {
       state.posts[payload].newComment = ''
     },
