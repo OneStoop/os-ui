@@ -407,7 +407,7 @@ export default {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.state.token }
       }
       var endTime = this.$store.getters.posts[this.$store.getters.posts.length - 1].created_date
-      axios.get(process.env.API_SERVER + 'feed?endTime=' + endTime, auth)
+      axios.get(process.env.VUE_APP_API_SERVER + 'feed?endTime=' + endTime, auth)
         .then(response => {
           console.log(response.data.posts)
           for (var i = 0; i < response.data.posts.length; i++) {
@@ -470,7 +470,7 @@ export default {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
         console.log(vm.imagePaths)
-        axios.put(process.env.API_SERVER + 'posts?postID=' + vm.editPostID, { 'post': vm.postData, 'removeImages': vm.removeImages, 'newImages': vm.newImages, 'visibility': vm.newVisibility }, auth)
+        axios.put(process.env.VUE_APP_API_SERVER + 'posts?postID=' + vm.editPostID, { 'post': vm.postData, 'removeImages': vm.removeImages, 'newImages': vm.newImages, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
@@ -521,7 +521,7 @@ export default {
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
-        axios.post(process.env.API_SERVER + 'images', formData, auth)
+        axios.post(process.env.VUE_APP_API_SERVER + 'images', formData, auth)
           .then(response => {
             vm.imageIDs.push({ 'url': response.data.url, 'key': response.data.imageID })
           })
@@ -542,7 +542,7 @@ export default {
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
-        axios.post(process.env.API_SERVER + 'images', formData, auth)
+        axios.post(process.env.VUE_APP_API_SERVER + 'images', formData, auth)
           .then(response => {
             vm.imageIDs.push({ 'url': response.data.url, 'key': response.data.imageID })
             vm.newImages.push({ 'url': response.data.url, 'key': response.data.imageID })
@@ -570,7 +570,7 @@ export default {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
 
-        axios.post(process.env.API_SERVER + 'comments',
+        axios.post(process.env.VUE_APP_API_SERVER + 'comments',
           { 'comment': vm.$store.getters.posts[elementPos].newComment,
             'post_id': id
           }, auth)
@@ -613,7 +613,7 @@ export default {
         for (var i = 0; i < vm.imageIDs.length; i++) {
           keys.push(vm.imageIDs[i].key)
         }
-        axios.post(process.env.API_SERVER + 'posts', { 'post': vm.postData, 'images': keys, 'visibility': vm.newVisibility }, auth)
+        axios.post(process.env.VUE_APP_API_SERVER + 'posts', { 'post': vm.postData, 'images': keys, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
@@ -652,7 +652,7 @@ export default {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.getters.token }
         }
         axios
-          .delete(process.env.API_SERVER + 'images?fileName=' + key, auth)
+          .delete(process.env.VUE_APP_API_SERVER + 'images?fileName=' + key, auth)
           .then(response => {
             for (var i = 0; i < vm.imageIDs.length; i++) {
               if (vm.imageIDs[i].key === key) {
@@ -732,7 +732,7 @@ export default {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.getters.token }
       }
       axios
-        .get(process.env.API_SERVER + 'feed', auth)
+        .get(process.env.VUE_APP_API_SERVER + 'feed', auth)
         .then(response => {
           var incomingPosts = response.data.posts
 

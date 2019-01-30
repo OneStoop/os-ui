@@ -20,7 +20,7 @@
 <script>
 export default {
   mounted () {
-    console.log(process.env.FIREBASE)
+    console.log('Landing Page')
   }
 }
 </script>

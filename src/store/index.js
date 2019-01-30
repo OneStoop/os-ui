@@ -20,7 +20,9 @@ const vuexLocalStorage = new VuexPersist({
   // filter: mutation => (true)
 })
 
-export const store = new Vuex.Store({
+Vue.use(Vuex)
+
+const store = new Vuex.Store({
   plugins: [vuexLocalStorage.plugin],
   state: {
     user: null,
@@ -29,7 +31,7 @@ export const store = new Vuex.Store({
     token: null,
     error: null,
     loading: false,
-    baseurl: 'http://localhost:5001/v1/',
+    baseurl: 'http://localhost:8080',
     posts: []
   },
   mutations: {
@@ -95,7 +97,7 @@ export const store = new Vuex.Store({
       var auth = {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
       }
-      axios.delete(process.env.API_SERVER + 'posts?postID=' + payload, auth)
+      axios.delete(process.env.VUE_APP_API_SERVER + 'posts?postID=' + payload, auth)
         .then(response => {
           console.log(response.data)
           for (var i = 0; i < store.state.posts.length; i++) {
@@ -134,8 +136,8 @@ export const store = new Vuex.Store({
           commit('setUser', { email: firebaseUser.user.email })
           commit('setLoading', false)
           commit('setToken', firebaseUser.user.qa)
-          console.log(process.env.API_SERVER)
-          axios.post(process.env.API_SERVER + `users?token=` + firebaseUser.user.qa, {
+          console.log(process.env.VUE_APP_API_SERVER)
+          axios.post(process.env.VUE_APP_API_SERVER + `users?token=` + firebaseUser.user.qa, {
             body: ''
           })
             .then(response => {})
@@ -185,7 +187,7 @@ export const store = new Vuex.Store({
           }
           console.log('this is store.state.user.email')
           console.log(store.state.user.email)
-          axios.get(process.env.API_SERVER + 'users?email=' + store.state.user.email, auth)
+          axios.get(process.env.VUE_APP_API_SERVER + 'users?email=' + store.state.user.email, auth)
             .then(function (response) {
               commit('setProfile', response.data)
             })
@@ -210,7 +212,7 @@ export const store = new Vuex.Store({
         var auth = {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
         }
-        axios.post(process.env.API_SERVER + 'posts', qs.stringify({ 'post': payload.postData }), auth)
+        axios.post(process.env.VUE_APP_API_SERVER + 'posts', qs.stringify({ 'post': payload.postData }), auth)
           .then(function (response) {
             commit('setLoading', false)
             router.push('/feed')
@@ -276,3 +278,4 @@ export const store = new Vuex.Store({
     }
   }
 })
+export default store
