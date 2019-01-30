@@ -75,6 +75,7 @@
         <span>One Stoop</span>
       </v-toolbar-title>
       <v-text-field
+        v-if="this.$store.getters.isAuthenticated"
         flat
         solo-inverted
         prepend-icon="search"
