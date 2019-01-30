@@ -9,7 +9,6 @@ import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 Vue.use(Vuetify)
 
-console.log('starting firebase')
 var fbConfig = {
     apiKey: process.env.VUE_APP_FIREBASE_APIKEY,
     authDomain: process.env.VUE_APP_FIREBASE_AUTHDOMAIN,
@@ -19,6 +18,7 @@ firebase.initializeApp(fbConfig)
 
 Vue.config.productionTip = process.env.NODE_ENV
 
+store.state.baseurl = process.env.VUE_APP_BASEURL
 /* eslint-disable no-new */
 // new Vue({
 //   el: '#app',

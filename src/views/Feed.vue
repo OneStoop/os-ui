@@ -401,7 +401,6 @@ export default {
   }),
   methods: {
     addPosts () {
-      console.log('adding posts')
       let vm = this
       var auth = {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.state.token }
@@ -409,7 +408,6 @@ export default {
       var endTime = this.$store.getters.posts[this.$store.getters.posts.length - 1].created_date
       axios.get(process.env.VUE_APP_API_SERVER + 'feed?endTime=' + endTime, auth)
         .then(response => {
-          console.log(response.data.posts)
           for (var i = 0; i < response.data.posts.length; i++) {
             var incomingPosts = response.data.posts[i]
             incomingPosts.changed = false
@@ -424,7 +422,6 @@ export default {
           }
         })
         .catch(function (error) {
-          console.log(error)
         })
     },
     autoRefreshToken () {
@@ -448,7 +445,7 @@ export default {
     openEditPost (id) {
       this.postData = this.$store.getters.getPostById(id).body
       this.newVisibility = this.$store.getters.getPostById(id).visibility
-      console.log(this.$store.getters.getPostById(id).images)
+
       this.imageIDs = this.$store.getters.getPostById(id).images
       this.editPostID = id
       this.editDialog = true
@@ -458,18 +455,14 @@ export default {
       this.deletePostDialog = true
     },
     deletePost () {
-      console.log('deletePost')
       this.$store.dispatch('deletePosts', this.deletePostID)
       this.deletePostDialog = false
     },
     editPost () {
-      console.log('editPost')
       function doEditPost (vm, count) {
-        console.log('starting editPost')
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
-        console.log(vm.imagePaths)
         axios.put(process.env.VUE_APP_API_SERVER + 'posts?postID=' + vm.editPostID, { 'post': vm.postData, 'removeImages': vm.removeImages, 'newImages': vm.newImages, 'visibility': vm.newVisibility }, auth)
           .then(response => {
             var newPost = response.data
@@ -493,7 +486,6 @@ export default {
               count++
               setTimeout(doEditPost(count), 1000)
             } else {
-              console.log(error)
               vm.postData = null
               vm.editDialog = false
               vm.imageIDs = []
@@ -526,11 +518,9 @@ export default {
             vm.imageIDs.push({ 'url': response.data.url, 'key': response.data.imageID })
           })
           .catch(function (error) {
-            console.log(error)
           })
       }
 
-      console.log('running onFileChange')
       for (var i = 0; i < file.length; i++) {
         doPost(this, file[i])
       }
@@ -548,11 +538,9 @@ export default {
             vm.newImages.push({ 'url': response.data.url, 'key': response.data.imageID })
           })
           .catch(function (error) {
-            console.log(error)
           })
       }
 
-      console.log('running onFileChange')
       for (var i = 0; i < file.length; i++) {
         doPost(this, file[i])
       }
@@ -561,10 +549,7 @@ export default {
       return moment.unix(utcdate).fromNow()
     },
     postComment (id) {
-      // var thisPostID = parseInt(id)
-      console.log(id)
       var elementPos = this.$store.getters.posts.findIndex(p => p.id === id)
-      console.log(elementPos)
       function doPost (vm, count) {
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
@@ -575,14 +560,9 @@ export default {
             'post_id': id
           }, auth)
           .then(response => {
-            console.log('did the comment post')
             vm.$store.commit('addNewComment', { comment: response.data, elementPos: elementPos })
-            // vm.$store.getters.posts[elementPos].newComment = ''
-            // console.log(response.data)
-            // vm.$store.getters.posts[elementPos].comments.push(response.data)
           })
           .catch(function (error) {
-            console.log(error)
             if (error.response.data.status === 'expired' && count < 3) {
               count++
               vm.$store.dispatch('refreshToken')
@@ -591,10 +571,7 @@ export default {
               count++
               setTimeout(doPost(count), 1000)
             } else {
-              console.log(error)
               vm.$store.commit('cleanNewComment', elementPos)
-              // vm.$store.getters.posts[elementPos].newComment = ''
-              // add cleanup here
             }
           })
       }
@@ -604,11 +581,9 @@ export default {
     },
     postPost () {
       function doPost (vm, count) {
-        console.log('starting doPost')
         var auth = {
           headers: { 'Content-Type': 'application/json', 'Authorization': vm.$store.state.token }
         }
-        console.log(vm.imagePaths)
         var keys = []
         for (var i = 0; i < vm.imageIDs.length; i++) {
           keys.push(vm.imageIDs[i].key)
@@ -633,7 +608,6 @@ export default {
               count++
               setTimeout(doPost(count), 1000)
             } else {
-              console.log(error)
               vm.postData = null
               vm.dialog = false
               vm.imageIDs = []
@@ -646,7 +620,6 @@ export default {
       doPost(this, count)
     },
     removedEvent (image) {
-      console.log('starting removedEvent')
       function deleteFile (vm, count, key) {
         var auth = {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.getters.token }
@@ -656,13 +629,11 @@ export default {
           .then(response => {
             for (var i = 0; i < vm.imageIDs.length; i++) {
               if (vm.imageIDs[i].key === key) {
-                console.log('removing')
                 vm.imageIDs.splice(i, 1)
               }
             }
           })
           .catch(function (e) {
-            console.log(e)
             if (e.response.data.status === 'expired' && count < 3) {
               count++
               vm.$store.dispatch('refreshToken')
@@ -671,7 +642,6 @@ export default {
               count++
               setTimeout(deleteFile(vm, count, image), 1000)
             } else {
-              console.log(e)
             }
           })
       }
@@ -680,12 +650,9 @@ export default {
       deleteFile(vm, count, image.key)
     },
     removedEditEvent (image) {
-      console.log('starting removedEditEvent')
-      console.log(image)
       this.removeImages.push(image)
       for (var i = 0; i < this.imageIDs.length; i++) {
         if (this.imageIDs[i].key === image.key) {
-          console.log('removing')
           this.imageIDs.splice(i, 1)
           for (var x = 0; i < this.newImages.length; i++) {
             if (this.newImages[x].hasOwnProperty()) {
@@ -714,20 +681,16 @@ export default {
     }
   },
   mounted () {
-    console.log('running Mounted')
     this.scroll()
     let vm = this
     setTimeout(function () { vm.autoRefreshToken() }, 300000)
   },
   created () {
-    console.log('running Created')
     window.addEventListener('resize', this.handleResize)
     this.handleResize()
   },
   beforeCreate () {
-    console.log('running beforeCreated')
     function getFeed (vm, count) {
-      console.log('running getFeed')
       var auth = {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': vm.$store.getters.token }
       }
@@ -757,7 +720,6 @@ export default {
             count++
             setTimeout(getFeed(vm, count), 1000)
           } else {
-            console.log(error)
             vm.dialog = false
           }
         })

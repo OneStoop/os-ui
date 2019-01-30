@@ -35,9 +35,10 @@ const store = new Vuex.Store({
     posts: []
   },
   mutations: {
+    setBaseurl (state, payload) {
+      state.baseurl = payload
+    },
     setUser (state, payload) {
-      console.log('setting user to')
-      console.log(payload)
       state.user = payload
     },
     setProfile (state, payload) {
@@ -56,11 +57,9 @@ const store = new Vuex.Store({
       state.posts = payload
     },
     addPosts (state, payload) {
-      console.log('adding posts')
       state.posts.splice(state.posts.length, 0, payload)
     },
     editPost (state, payload) {
-      console.log('running editPost')
       for (var i = 0; i < store.state.posts.length; i++) {
         if (payload === store.state.posts[i].id) {
           store.state.posts[i] = payload
@@ -72,7 +71,6 @@ const store = new Vuex.Store({
       state.posts[payload].newComment = ''
     },
     addNewComment (state, payload) {
-      console.log(payload.elementPos)
       state.posts[payload.elementPos].newComment = ''
       state.posts[payload.elementPos].comments.push(payload.comment)
     },
@@ -85,21 +83,17 @@ const store = new Vuex.Store({
   },
   actions: {
     refreshToken ({ commit }) {
-      console.log('trying to refresh token')
       firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then(function (idToken) {
         commit('setToken', idToken)
       }).catch(function (error) {
-        console.log(error)
       })
     },
     deletePosts ({ commit }, payload) {
-      console.log('running deletePosts')
       var auth = {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
       }
       axios.delete(process.env.VUE_APP_API_SERVER + 'posts?postID=' + payload, auth)
         .then(response => {
-          console.log(response.data)
           for (var i = 0; i < store.state.posts.length; i++) {
             if (payload === store.state.posts[i].id) {
               store.state.posts.splice(i, 1)
@@ -108,35 +102,18 @@ const store = new Vuex.Store({
           }
         })
         .catch(function (error) {
-          console.log(error)
         })
     },
     loadPosts ({ commit }, payload) {
-      console.log('running loadPosts')
-      // var newPayload = []
-      // var tmpItem = {}
-      // for (i = 0; payload.length; i++) {
-      // tmpItem = payload[i]
-      //  if (payload[i].email == state.user.email) {
-      //    newPayload[i].postControl = [{title: "Edit Post"}, {title: "Delete Post"}]
-      //  } else {
-      //    newPayload[i].postControl = [{title: "Bob"}]
-      //  }
-      //  newPayload.push(tmpItem)
-      //  console.log(payload[i])
-      // }
       commit('setPosts', payload)
     },
     userSignUp ({ commit }, payload) {
       commit('setLoading', true)
       firebase.auth().createUserWithEmailAndPassword(payload.email, payload.password)
         .then(firebaseUser => {
-          // console.log(firebaseUser.uid)
-          // console.log(firebaseUser.email)
           commit('setUser', { email: firebaseUser.user.email })
           commit('setLoading', false)
           commit('setToken', firebaseUser.user.qa)
-          console.log(process.env.VUE_APP_API_SERVER)
           axios.post(process.env.VUE_APP_API_SERVER + `users?token=` + firebaseUser.user.qa, {
             body: ''
           })
@@ -146,7 +123,6 @@ const store = new Vuex.Store({
               user.delete().then(function () {
                 // User deleted.
               }).catch(function (error) {
-                console.log(error)
               })
               commit('setUser', null)
               router.push('/tryagain')
@@ -165,13 +141,10 @@ const store = new Vuex.Store({
         .then(function () {
           return firebase.auth().signInWithEmailAndPassword(payload.email, payload.password)
             .then(firebaseUser => {
-              console.log(firebaseUser)
               commit('setUser', { email: firebaseUser.user.email, uid: firebaseUser.user.uid })
               commit('setToken', firebaseUser.user.ra)
               commit('setLoading', false)
               commit('setError', null)
-              console.log(firebaseUser)
-              console.log(process.env.NODE_ENV)
               router.push('/feed')
             })
             .catch(error => {
@@ -179,36 +152,28 @@ const store = new Vuex.Store({
               commit('setLoading', false)
               firebase.auth().signOut()
               commit('setUser', null)
-              console.log(error)
             })
         }).then(function () {
           var auth = {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
           }
-          console.log('this is store.state.user.email')
-          console.log(store.state.user.email)
           axios.get(process.env.VUE_APP_API_SERVER + 'users?email=' + store.state.user.email, auth)
             .then(function (response) {
               commit('setProfile', response.data)
             })
             .catch(function (error) {
-              console.log(error)
               firebase.auth().signOut()
               commit('setUser', null)
             })
         })
         .catch(function (error) {
           // Handle Errors here.
-          console.log(error.code)
-          console.log(error.message)
           commit('setUser', null)
         })
     },
     postPost ({ commit }, payload) {
       commit('setLoading', true)
-      console.log(payload)
       function doPost ({ commit }, payload, count) {
-        console.log(count)
         var auth = {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
         }
@@ -220,13 +185,10 @@ const store = new Vuex.Store({
           .catch(function (error) {
             if (error.response.data.status === 'expired' && count < 3) {
               count++
-              console.log('call refreshToken')
               store.dispatch('refreshToken')
               setTimeout(doPost({ commit }, payload, count), 1000)
             } else if (error.response.status >= 400 && count < 3) {
               count++
-              console.log('some 400 error')
-              console.log(count)
               commit('setLoading', false)
               setTimeout(doPost({ commit }, payload, count), 1000)
             } else {

@@ -20,7 +20,6 @@
 <script>
 export default {
   mounted () {
-    console.log('Landing Page')
   }
 }
 </script>
