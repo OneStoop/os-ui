@@ -4,7 +4,7 @@
       fixed
       app
       v-model="drawer"
-      v-if="$route.path != '/' && $route.path != '/signin'"
+      v-if="this.$store.getters.isAuthenticated"
     >
       <v-list dense>
         <template v-for="item in items">
