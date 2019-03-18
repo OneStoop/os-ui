@@ -1,7 +1,7 @@
 import Vue from 'vue'
 // import Router from 'vue-router'
 import VueRouter from 'vue-router'
-import firebase from 'firebase'
+// import firebase from 'firebase'
 import store from '../store'
 
 // function loadView (view) {

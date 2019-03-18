@@ -2,7 +2,9 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import VuexPersist from 'vuex-persist'
 import axios from 'axios'
-import firebase from 'firebase'
+// import firebase from 'firebase'
+import firebase from 'firebase/app'
+import 'firebase/auth'
 import router from '@/router'
 
 Vue.use(Vuex)
@@ -32,7 +34,11 @@ const store = new Vuex.Store({
     error: null,
     loading: false,
     baseurl: 'http://localhost:8080',
-    posts: []
+    posts: [],
+    searchModel: null,
+    searchLoading: false,
+    searchInput: null,
+    searchItems: null
   },
   mutations: {
     setBaseurl (state, payload) {

@@ -4,7 +4,9 @@ import router from './router'
 import store from './store'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
-import firebase from 'firebase'
+// import firebase from 'firebase'
+import firebase from 'firebase/app'
+import 'firebase/auth'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 Vue.use(Vuetify)

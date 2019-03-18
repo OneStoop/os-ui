@@ -74,14 +74,19 @@
         <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <span>One Stoop</span>
       </v-toolbar-title>
-      <v-text-field
+      <v-autocomplete
         v-if="this.$store.getters.isAuthenticated"
         flat
-        solo-inverted
+        v-model="this.$store.searchModel"
+        :items="this.$store.searchItems"
+        :loading="this.$store.searchLoading"
+        :search-input.sync="this.$store.searchInput"
+        hide-no-data
+        hide-selected
         prepend-icon="search"
-        label="Search"
-        class="hidden-sm-and-down"
-      ></v-text-field>
+        placeholder="Search"
+        return-object
+      ></v-autocomplete>
       <v-spacer></v-spacer>
       <!-- <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'"> -->
       <v-btn icon v-if="this.$store.getters.isAuthenticated">
