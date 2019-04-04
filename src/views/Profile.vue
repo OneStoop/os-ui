@@ -26,6 +26,7 @@
             <p>This is {{ $route.params.email }} profile page</p>
             <p>{{ this.$store.state.user }}</p>
             <p>{{ this.$store.state.profile }}</p>
+            <p>{{ this.$store.state.token }}</p>
             <v-tabs
               v-model="active"
               right

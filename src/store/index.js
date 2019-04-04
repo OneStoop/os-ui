@@ -89,9 +89,10 @@ const store = new Vuex.Store({
   },
   actions: {
     refreshToken ({ commit }) {
-      firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then(function (idToken) {
+      console.log("refreshToken")
+      firebase.auth().currentUser.getIdToken(/* forceRefresh */ false).then(function (idToken) {
         commit('setToken', idToken)
-      }).catch(function (error) {
+      }).catch(function () {
       })
     },
     deletePosts ({ commit }, payload) {
@@ -107,7 +108,7 @@ const store = new Vuex.Store({
             }
           }
         })
-        .catch(function (error) {
+        .catch(function () {
         })
     },
     loadPosts ({ commit }, payload) {
@@ -123,12 +124,13 @@ const store = new Vuex.Store({
           axios.post(process.env.VUE_APP_API_SERVER + `users?token=` + firebaseUser.user.qa, {
             body: ''
           })
-            .then(response => {})
+            // .then(response => {})
+            .then()
             .catch(e => {
               var user = firebase.auth().currentUser
               user.delete().then(function () {
                 // User deleted.
-              }).catch(function (error) {
+              }).catch(function () {
               })
               commit('setUser', null)
               router.push('/tryagain')
@@ -167,12 +169,12 @@ const store = new Vuex.Store({
             .then(function (response) {
               commit('setProfile', response.data)
             })
-            .catch(function (error) {
+            .catch(function () {
               firebase.auth().signOut()
               commit('setUser', null)
             })
         })
-        .catch(function (error) {
+        .catch(function () {
           // Handle Errors here.
           commit('setUser', null)
         })
@@ -184,7 +186,7 @@ const store = new Vuex.Store({
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': store.state.token }
         }
         axios.post(process.env.VUE_APP_API_SERVER + 'posts', qs.stringify({ 'post': payload.postData }), auth)
-          .then(function (response) {
+          .then(function () {
             commit('setLoading', false)
             router.push('/feed')
           })

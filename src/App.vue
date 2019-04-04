@@ -177,6 +177,11 @@ export default {
     userSignOut () {
       this.$store.dispatch('userSignOut')
     }
+  },
+  beforeUpdate () {
+    if (this.isAuthenticated) {
+      this.$store.dispatch('refreshToken')
+    }
   }
 }
 </script>
