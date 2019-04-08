@@ -13,7 +13,7 @@ os-ui is the web app/user interface for One Stoop.  The main components of os-ui
 
 ### Goals for os-ui
 * Be secure, don't leak data
-* Be light and easy to user
+* Be light and easy to use
 * Be reactive
 
 # Getting started with One Stoop
@@ -24,8 +24,7 @@ Prerequisites:
 1) nodejs needs to be installed.  To check if you have node run `nodejs --version`
 As of this writing we are running v8.11.3 on our dev instance
 2) A firebase account [https://firebase.google.com/](https://firebase.google.com/)
-Authentication should be enabled with at least Email/Password sign-in method setup
-Storage will need to be enabled
+Authentication should be enabled with at least Email/Password sign-in method
 3) vue cli needs to be install.  [https://cli.vuejs.org/] (https://cli.vuejs.org/)
 
 Steps:

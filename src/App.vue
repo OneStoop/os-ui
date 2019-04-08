@@ -77,15 +77,8 @@
       <v-autocomplete
         v-if="this.$store.getters.isAuthenticated"
         flat
-        v-model="this.$store.searchModel"
-        :items="this.$store.searchItems"
-        :loading="this.$store.searchLoading"
-        :search-input.sync="this.$store.searchInput"
-        hide-no-data
-        hide-selected
         prepend-icon="search"
         placeholder="Search"
-        return-object
       ></v-autocomplete>
       <v-spacer></v-spacer>
       <!-- <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'"> -->

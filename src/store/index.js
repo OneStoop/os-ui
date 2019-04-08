@@ -153,6 +153,7 @@ const store = new Vuex.Store({
               commit('setToken', firebaseUser.user.ra)
               commit('setLoading', false)
               commit('setError', null)
+              console.log('logged in, redirecting to feed')
               router.push('/feed')
             })
             .catch(error => {
