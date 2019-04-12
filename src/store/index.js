@@ -34,11 +34,7 @@ const store = new Vuex.Store({
     error: null,
     loading: false,
     baseurl: 'http://localhost:8080',
-    posts: [],
-    searchModel: null,
-    searchLoading: false,
-    searchInput: null,
-    searchItems: null
+    posts: []
   },
   mutations: {
     setBaseurl (state, payload) {
@@ -90,9 +86,13 @@ const store = new Vuex.Store({
   actions: {
     refreshToken ({ commit }) {
       console.log("refreshToken")
-      firebase.auth().currentUser.getIdToken(/* forceRefresh */ false).then(function (idToken) {
-        commit('setToken', idToken)
-      }).catch(function () {
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          firebase.auth().currentUser.getIdToken(/* forceRefresh */ false).then(function (idToken) {
+            commit('setToken', idToken)
+          }).catch(function () {
+          })
+        } else { router.push('/signout') }
       })
     },
     deletePosts ({ commit }, payload) {
@@ -219,6 +219,9 @@ const store = new Vuex.Store({
       commit('clearPosts', null)
       commit('setToken', null)
       router.push('/')
+    },
+    pushRoute ({ commit }, payload) {
+      router.push(state.baseurl + payload)
     }
   },
   getters: {

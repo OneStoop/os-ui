@@ -76,10 +76,50 @@
       </v-toolbar-title>
       <v-autocomplete
         v-if="this.$store.getters.isAuthenticated"
+        v-model="searchModel"
+        :items="searchItems"
+        :loading="searchLoading"
+        :search-input.sync="search"
+        clearable
+        hide-details
+        hide-selected
+        item-text="email"
         flat
         prepend-icon="search"
         placeholder="Search"
-      ></v-autocomplete>
+      >
+        <template v-slot:no-data>
+          <v-list-tile>
+            <v-list-tile-title>
+              Search for your friends
+            </v-list-tile-title>
+          </v-list-tile>
+        </template>
+        <template v-slot:selection="{ item, selected }">
+          <v-chip
+            :selected="selected"
+            color="blue-grey"
+            class="white--text"
+          >
+            <v-icon left>mdi-coin</v-icon>
+            <span v-text="item.email"></span>
+          </v-chip>
+        </template>
+        <template v-slot:item="{ item }">
+          <v-list-tile-avatar
+            color="indigo"
+            class="headline font-weight-light white--text"
+          >
+          </v-list-tile-avatar>
+          <v-list-tile-content>
+            <v-list-tile-title v-text="`${item.first_name} ${item.last_name}`" :to="'/profile/'"></v-list-tile-title>
+            <v-list-tile-sub-title v-text="item.email"></v-list-tile-sub-title>
+          </v-list-tile-content>
+          <v-list-tile-action>
+            <v-icon>mdi-coin</v-icon>
+          </v-list-tile-action>
+        </template>
+      </v-autocomplete>
       <v-spacer></v-spacer>
       <!-- <v-btn icon v-if="$route.path != '/' && $route.path != '/signin'"> -->
       <v-btn icon v-if="this.$store.getters.isAuthenticated">
@@ -105,6 +145,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+import router from '@/router'
 export default {
   data () {
     return {
@@ -142,7 +184,12 @@ export default {
         { icon: 'help', text: 'Help', path: '/help' },
         { icon: 'monetization_on', text: 'Donate' },
         { icon: 'exit_to_app', text: 'Sign Out', path: '/signout' }
-      ]
+      ],
+      search: null,
+      searchModel: null,
+      searchLoading: false,
+      searchInput: null,
+      searchItems: []
     }
   },
   computed: {
@@ -169,11 +216,45 @@ export default {
   methods: {
     userSignOut () {
       this.$store.dispatch('userSignOut')
+    },
+    doSearch () {
+      console.log("doing search")
+      this.searchLoading = true
+
+      var auth = {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': this.$store.state.token }
+      }
+      axios.get(process.env.VUE_APP_API_SERVER + 'search?q=' + this.search, auth)
+        .then(response => {
+          console.log(response.data.opitons)
+          this.searchItems = response.data.opitons
+        })
+        .catch(function () {
+        })
+        .finally(() => (this.searchLoading = false))
     }
   },
   beforeUpdate () {
     if (this.isAuthenticated) {
       this.$store.dispatch('refreshToken')
+    }
+  },
+  watch: {
+    search () {
+      console.log("see change in search")
+      // if (this.searchItems.length > 0) return
+
+      this.doSearch()
+      // this.$store.commit('searchLoading', true)
+      // this.$store.dispatch('doSearch')
+      // this.$store.commit('searchLoading', false)
+    },
+    searchModel () {
+      console.log("see change in searchModel")
+      if (this.searchModel != null) {
+        router.push('/profile/' + this.searchModel)
+        this.searchModel = null
+      }
     }
   }
 }
