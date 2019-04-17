@@ -8,6 +8,7 @@ import 'vuetify/dist/vuetify.min.css'
 import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import mixin from './functions/shared.js'
 
 Vue.use(Vuetify)
 
@@ -30,6 +31,7 @@ store.state.baseurl = process.env.VUE_APP_BASEURL
 // })
 
 new Vue({
+  mixins: [mixin],
   router,
   store,
   render: h => h(App)
