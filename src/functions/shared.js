@@ -67,31 +67,41 @@ export default {
             var newPost = response.data
             newPost.postControl = [{ title: 'edit' }, { title: 'delete' }]
             vm.$store.commit('editPost', newPost) // ???
-            vm.newVisibility = 'friends'
-            vm.postData = null
             vm.editDialog = false
+            vm.postData = ''
             vm.imageIDs = []
-            vm.newVisibility = 'friends'
-            vm.editPostID = null
             vm.removeImages = []
             vm.newImages = []
+            vm.newVisibility = 'friends'
+            vm.editPostID = null
           })
           .catch(function (error) {
-            if (error.response.data.status === 'expired' && count < 3) {
-              count++
-              vm.$store.dispatch('refreshToken')
-              setTimeout(doEditPost(count), 1000)
-            } else if (error.response.status >= 400 && count < 3) {
-              count++
-              setTimeout(doEditPost(count), 1000)
+            if (error.response) {
+              if (error.response.data.status === 'expired' && count < 3) {
+                count++
+                vm.$store.dispatch('refreshToken')
+                setTimeout(doEditPost(vm, count), 1000)
+              } else if (error.response.status >= 400 && count < 3) {
+                count++
+                setTimeout(doEditPost(vm, count), 1000)
+              } else {
+                vm.editDialog = false
+                vm.postData = ''
+                vm.imageIDs = []
+                vm.removeImages = []
+                vm.newImages = []
+                vm.newVisibility = 'friends'
+                vm.editPostID = null
+              }
             } else {
-              vm.postData = null
-              vm.editDialog = false
-              vm.imageIDs = []
-              vm.newVisibility = 'friends'
-              vm.editPostID = null
-              vm.removeImages = []
-              vm.newImages = []
+                console.log(error)
+                vm.editDialog = false
+                vm.postData = ''
+                vm.imageIDs = []
+                vm.removeImages = []
+                vm.newImages = []
+                vm.newVisibility = 'friends'
+                vm.editPostID = null
             }
           })
       }

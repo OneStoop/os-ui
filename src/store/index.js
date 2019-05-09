@@ -63,7 +63,7 @@ const store = new Vuex.Store({
     },
     editPost (state, payload) {
       for (var i = 0; i < store.state.posts.length; i++) {
-        if (payload === store.state.posts[i].id) {
+        if (payload.id === store.state.posts[i].id) {
           store.state.posts[i] = payload
           break
         }
@@ -120,8 +120,10 @@ const store = new Vuex.Store({
         .then(firebaseUser => {
           commit('setUser', { email: firebaseUser.user.email })
           commit('setLoading', false)
-          commit('setToken', firebaseUser.user.qa)
-          axios.post(process.env.VUE_APP_API_SERVER + `users?token=` + firebaseUser.user.qa, {
+          commit('setToken', firebaseUser.user._lat)
+          console.log(firebaseUser.user.qa)
+          console.log(firebaseUser.user)
+          axios.post(process.env.VUE_APP_API_SERVER + `users?token=` + firebaseUser.user._lat + '&name=' + payload.name, {
             body: ''
           })
             // .then(response => {})

@@ -112,7 +112,7 @@
           >
           </v-list-tile-avatar>
           <v-list-tile-content>
-            <v-list-tile-title v-text="`${item.first_name} ${item.last_name}`" :to="'/profile/'"></v-list-tile-title>
+            <v-list-tile-title v-text="`${item.name}`" :to="'/profile/'"></v-list-tile-title>
             <v-list-tile-sub-title v-text="item.email"></v-list-tile-sub-title>
           </v-list-tile-content>
           <v-list-tile-action>
@@ -224,7 +224,7 @@ export default {
       var auth = {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': this.$store.state.token }
       }
-      axios.get(process.env.VUE_APP_API_SERVER + 'search?q=' + this.search, auth)
+      axios.get(process.env.VUE_APP_SEARCH_SERVER + 'search?q=' + this.search, auth)
         .then(response => {
           console.log(response.data.opitons)
           this.searchItems = response.data.opitons

@@ -9,8 +9,10 @@ import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import mixin from './functions/shared.js'
+import VueObserveVisibility from 'vue-observe-visibility'
 
 Vue.use(Vuetify)
+Vue.use(VueObserveVisibility)
 
 var fbConfig = {
     apiKey: process.env.VUE_APP_FIREBASE_APIKEY,

@@ -14,6 +14,15 @@
             </v-flex>
             <v-flex>
               <v-text-field
+                name="name"
+                label="Name"
+                id="name"
+                type="text"
+                v-model="name"
+                required></v-text-field>
+            </v-flex>
+            <v-flex>
+              <v-text-field
                 name="email"
                 label="Email"
                 id="email"
@@ -66,6 +75,7 @@ export default {
     return {
       email: '',
       password: '',
+      name: '',
       passwordConfirm: '',
       alert: false,
       invitationCode: ''
@@ -87,7 +97,7 @@ export default {
       if (this.comparePasswords !== true) {
         return
       }
-      this.$store.dispatch('userSignUp', { email: this.email, password: this.password, invitationCode: this.invitationCode })
+      this.$store.dispatch('userSignUp', { email: this.email, password: this.password, invitationCode: this.invitationCode, name: this.name })
     }
   },
   watch: {
