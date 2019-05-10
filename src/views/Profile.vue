@@ -7,29 +7,31 @@
         <v-flex xs12>
           <v-card>
             <v-container grid-list-md text-xs>
-              <v-layout row wrap>
-                <v-flex xs4>
-                  <v-card>
-                    <v-toolbar flat card color='white'>
-                      <v-spacer></v-spacer>
-                      <v-btn flat icon v-if="$route.params.email === this.$store.getters.user.email">
-                        <v-icon>edit</v-icon>
-                      </v-btn>
-                    </v-toolbar>
-                    <p class="text-md-center">
+              <v-layout>
+                <v-flex xs12 sm4>
+                  <v-card class="text-md-center">
                       <v-avatar size=160>
                         <v-icon v-if="userProfile.avatar == null" size=160>person</v-icon>
                         <img v-else :src="userProfile.avatar">
                       </v-avatar>
 
-                      <p class="title">{{ userProfile.name }}</p>
-                    </p>
+                    <v-card-actions>
+                      {{ userProfile.name }}
+                      <v-spacer></v-spacer>
+                      <v-btn flat icon v-if="$route.params.email === this.$store.getters.user.email">
+                        <v-icon>edit</v-icon>
+                      </v-btn>
+                    </v-card-actions>
                   </v-card>
                 </v-flex>
-                <v-flex xs4></v-flex>
-                <v-flex xs4 class="text-lg-right">
+              </v-layout>
+              <v-layout>
+                <v-flex xs12 class="text-lg-right">
                   <v-spacer></v-spacer>
-                  <v-btn round small color="primary" v-if="this.userProfile.visibility === null"><v-icon left>person_add</v-icon>Add Friend</v-btn>
+                  <v-btn round small color="primary" v-if="this.userProfile.visibility === null">
+                    <v-icon left>person_add</v-icon>
+                    Add Friend
+                  </v-btn>
                 </v-flex>
               </v-layout>
             </v-container>
